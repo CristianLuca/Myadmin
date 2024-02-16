@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
-import './ComponentsCss/fonts.css';
-import Navigation from './Components/Navigation.jsx';
+import "../ComponentsCss/fonts.css";
+import Navigation from '../Components/Navigation.jsx';
 
 function Home(){
   const [showMenu, setShowMenu] = useState(false);
@@ -20,6 +20,7 @@ function Home(){
         <p className='gelasio' style={{position:'absolute', left:'9vw', top:'0.8vw'}}>
           Hello, user!
         </p>
+        
         <Link to='/' onClick={handleClick}> 
           <img src='/src/menu.png' style={{position: 'absolute', left:'0.5vw', top:'0.5vw', width:'3vw', height:'2vw'}}></img>
         </Link>
