@@ -1,0 +1,13 @@
+
+.navbar { 
+    display: grid;
+    place-items: center;
+    text-align: center;
+    font-size: 1vw;    
+    margin-bottom: 2vw;
+    border-bottom: 0.1vw solid white;
+    border-top: 0.1vw solid white;}
+.navbarImageSize{
+    width: 4vw;
+     height: 4vw;
+}

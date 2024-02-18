@@ -1,37 +1,57 @@
 import React, { useState } from 'react';
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
-import './ComponentsCss/fonts.css';
-import Navigation from './Components/Navigation.jsx';
-import Home from './Components/Home.jsx';
+import { Link } from 'react-router-dom';
+import './ComponentsCss/App.css'
+import './ComponentsCss/Fonts.css'
 
-function App(){
+export default function App() {
   const [showMenu, setShowMenu] = useState(false);
 
   const handleClick = () => {
     setShowMenu(!showMenu);
-    console.log('showMenu:', showMenu);
   }
 
-  return( 
-    <BrowserRouter>
-      <div style={{position:'absolute', width:'100vw', height:'3vw', backgroundColor:'white'}}>
-        <h1 className='gelasio' style={{position: 'absolute', top:'0.4vw', left:'50vw', fontSize:'1.5vw'}}> 
+  return (
+  
+      
+      <div style={{ position: 'flex', width: '100vw', height: '3vw', backgroundColor: 'white' }}>
+        <h1 className='gelasio' style={{ position: 'absolute', top: '0.4vw', left: '50vw', fontSize: '1.5vw' }}>
           MyManager
         </h1>
-        <p className='gelasio' style={{position:'absolute', left:'9vw', top:'0.8vw'}}>
+        <p className='gelasio' style={{ position: 'absolute', left: '9vw', top: '0.8vw' }}>
           Hello, user!
         </p>
-        <p className='gelasio' style={{position:'absolute', left:'49vw', top:'25vw', color:'white'}}>
-          Welcome to MyAdmin!
-        </p>
-        <Link to='/' onClick={handleClick}> 
-          <img src='/src/menu.png' style={{position: 'absolute', left:'0.5vw', top:'0.5vw', width:'3vw', height:'2vw'}}></img>
+        
+          <img src='/src/menu.png' onClick={handleClick} style={{ position: 'absolute', left: '0.5vw', top: '0.5vw', width: '3vw', height: '2vw' }}></img>
+
+        {showMenu && (
+          <div style={{ position: 'absolute', top: '12vw', left: '0.5vw', display: 'flex', flexDirection: 'column', backgroundColor: 'black', color: 'white' }}>
+        <Link to="/pos" className="gelasio navbar">
+        <img src='./src/self-checkout.png' alt="self-checkout" className="navbarImageSize" />
+        PoS
         </Link>
-        {showMenu && <Navigation />}
+        <Link to="/insights" className="navbar gelasio" >
+        <img src='./src/financial.png' alt="self-checkout" className="navbarImageSize" />
+        Insights
+        </Link>
+        <Link to="/staff" className="navbar gelasio" >
+        <img src='./src/staff.png' alt="self-checkout" className="navbarImageSize" />
+        Staff
+        </Link>
+        <Link to="/booking" className="navbar gelasio" >
+        <img src='./src/booking.png' alt="self-checkout" className="navbarImageSize" />
+        Bookings
+        </Link>
+        <Link to="/stock" className="navbar gelasio" >
+        <img src='./src/stock.png' alt="self-checkout" className="navbarImageSize" />
+        Stock
+        </Link>
+          </div>
+        )}
       </div>
-      <div style={{backgroundColor:'black', width:'100vw', height:'56.9vw'}}></div>
-    </BrowserRouter> 
-  )
+    
+  );
 }
 
-export default App;
+
+
+
