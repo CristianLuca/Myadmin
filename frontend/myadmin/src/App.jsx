@@ -24,7 +24,7 @@ export default function App() {
           <img src='/src/menu.png' onClick={handleClick} style={{ position: 'absolute', left: '0.5vw', top: '0.5vw', width: '3vw', height: '2vw' }}></img>
 
         {showMenu && (
-          <div style={{ position: 'absolute', top: '12vw', left: '0.5vw', display: 'flex', flexDirection: 'column', backgroundColor: 'black', color: 'white' }}>
+          <div style={{ position: 'absolute', top: '25vh', left: '0.5vw', display: 'flex', flexDirection: 'column', backgroundColor: 'black', color: 'white' }}>
         <Link to="/pos" className="gelasio navbar">
         <img src='./src/self-checkout.png' alt="self-checkout" className="navbarImageSize" />
         PoS
