@@ -1,9 +1,12 @@
 {
+  "homepage": "https://cristianluca.github.io/Myadmin",
   "name": "myadmin",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "predeploy": "npm run dev",
+    "deploy": "gh-pages -d dev",
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
