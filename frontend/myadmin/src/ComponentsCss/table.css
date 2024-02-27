@@ -1,0 +1,42 @@
+
+  
+.table-container {
+    margin: 1vw; /* Center the container */
+    position: absolute;
+    left: 58vw;
+    height: 50vw; /* Adjust max height as needed */
+    overflow: auto;
+  }
+  
+.table {
+    
+    width: 38vw; /* Adjust width to account for scrollbar */
+    border-collapse: collapse;
+    
+  
+  }
+.table thead,
+.table th {
+    padding: 1vw;
+    color: #fff;
+    text-align: left;
+    position: sticky;
+    top:0;
+    background-color: green;
+  
+  }
+.table tr:hover {
+    background-color: #5a5858;
+  }
+
+.table td {
+
+    padding: 1vw;
+    background-color: rgba(255, 255, 255, 0.2);
+    color: #fff;
+  }
+
+  
+
+  
+ 

@@ -19,10 +19,34 @@ app.get('/', (req, res) => {
 
 
 app.get('/booking', (req, res) => {
-    const q = "SELECT * FROM booking";
-    db.query(q, (err, data) => {
+    const { date } = req.query;
+    // Query to fetch bookings for the given date
+    const sql = 'SELECT * FROM booking WHERE date = ?';
+    // Execute query with the selected date
+    db.query(sql, [date], (error, results) => {
+      if (error) {
+        console.error('Error fetching bookings:', error);
+        res.status(500).json({ error: 'Internal server error' });
+        return;
+      }
+      res.json(results);
+    });
+  });
+  app.post('/addbooking', (req, res) => {
+    const sql = 'INSERT INTO booking (`first_name`, `last_name`, `email`, `phone`, `no_guests`, `date`, `time`, `message`) VALUES (?)';
+    const values = [
+        req.body.first_name,
+        req.body.last_name,
+        req.body.email,
+        req.body.phone,
+        req.body.no_guests,
+        req.body.date,
+        req.body.time,
+        req.body.message
+    ];
+    db.query(sql, [values], (err, data) => {
         if (err) {
-            return res.json('err');
+            return res.json(err);
         }
         return res.json(data);
     })
