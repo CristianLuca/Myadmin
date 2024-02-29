@@ -1,12 +1,25 @@
-.button1 {
+.buttongreen {
     transition-duration: 0.4s;
     border: 2px solid #04AA6D;
     padding: 10px;
    
   }
   
-  .button1:hover {
+  .buttongreen:hover {
     background-color: green; /* Green */
+    color: white;
+    box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
+    
+  }
+  .buttonred {
+    transition-duration: 0.4s;
+    border: 2px solid red;
+    padding: 10px;
+   
+  }
+  
+  .buttonred:hover {
+    background-color: red; /* Green */
     color: white;
     box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
     

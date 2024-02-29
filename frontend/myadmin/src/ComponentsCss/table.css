@@ -18,11 +18,11 @@
 .table thead,
 .table th {
     padding: 1vw;
-    color: #fff;
+    color: #000000;
     text-align: left;
     position: sticky;
     top:0;
-    background-color: green;
+    background-color: rgb(102, 243, 102);
   
   }
 .table tr:hover {

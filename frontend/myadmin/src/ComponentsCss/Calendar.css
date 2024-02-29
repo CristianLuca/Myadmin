@@ -123,4 +123,7 @@ abbr[title] {
 .react-calendar__month-view__days__day:nth-child(7n+2) {
   color: red;
 }
+.react-calendar__month-view {
+  margin-top: 3vw; /* Adjust the margin-top to move the dates down */
+}
 

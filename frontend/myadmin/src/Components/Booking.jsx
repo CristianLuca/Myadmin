@@ -12,7 +12,7 @@ export default function Booking() {
   const [expandedBooking, setExpandedBooking] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showModal, setShowModal] = useState(false); // State to control modal visibility
-  const collapseTimeoutRef = useRef(null);
+  const [editingIndex, setEditingIndex] = useState(null); // Index of the booking being edited
   const [values, setValues] = useState({
     first_name: '',
     last_name: '',
@@ -22,40 +22,35 @@ export default function Booking() {
     date: '',
     time: '',
     message: '',
-});
-const handleInput = (event) => {
-  setValues(prev => ({ ...prev, [event.target.name]: event.target.value }));
-}
-useEffect(() => {
-  const fetchData = async () => {
-    try {
-      const formattedDate = selectedDate.toISOString().split('T')[0];
-      const response = await axios.get(`http://localhost:8800/booking?date=${formattedDate}`);
-      setData(response.data);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    }
-  };
+  });
 
-  // Fetch data initially when the component mounts
-  fetchData();
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const formattedDate = selectedDate.toISOString().split('T')[0];
+        const response = await axios.get(`http://localhost:8800/booking?date=${formattedDate}`);
+        setData(response.data);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
 
-  // Refresh data every 5 seconds
-  const intervalId = setInterval(fetchData, 5000);
+    // Fetch data initially when the component mounts
+    fetchData();
 
-  // Clear interval on component unmount
-  return () => clearInterval(intervalId);
-}, [selectedDate]);
+    // Refresh data every 5 seconds
+    const intervalId = setInterval(fetchData, 5000);
+
+    // Clear interval on component unmount
+    return () => clearInterval(intervalId);
+  }, [selectedDate]);
 
   const handleCollapseBooking = () => {
-    collapseTimeoutRef.current = setTimeout(() => {
-      setExpandedBooking(null);
-    }, 300);
+    setExpandedBooking(null);
   };
 
   const handleExpandBooking = (index) => {
     setExpandedBooking(index);
-    clearTimeout(collapseTimeoutRef.current);
   };
 
   const handleMouseEnter = () => {
@@ -72,24 +67,84 @@ useEffect(() => {
     setSelectedDate(date);
   };
 
+  const handleInput = (event) => {
+    setValues((prev) => ({ ...prev, [event.target.name]: event.target.value }));
+  };
+
   const handleAddBooking = () => {
+    setEditingIndex(null); // Reset editing index
+    setValues({  // Reset form fields
+      first_name: '',
+      last_name: '',
+      email: '',
+      phone: '',
+      no_guests: '',
+      date: '',
+      time: '',
+      message: '',
+    });
     setShowModal(true); // Open the modal when "Add Booking" button is clicked
+  };
+
+  const handleEditBooking = (index) => {
+    const booking = data[index];
+    setEditingIndex(index);
+    // Set form fields with the values of the selected booking
+    setValues({
+      first_name: booking.first_name,
+      last_name: booking.last_name,
+      email: booking.email,
+      phone: booking.phone,
+      no_guests: booking.no_guests,
+      date: booking.date,
+      time: booking.time,
+      message: booking.message,
+    });
+    setShowModal(true); // Open the modal for editing
   };
 
   const handleCloseModal = () => {
     setShowModal(false); // Close the modal
   };
 
-  const handleSubmit = async event => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
+    for (const key in values) {
+      if (values[key] === '' && key !== 'email' && key !== 'message') {
+        alert(`${key.replace('_', ' ')} is required`);
+        return;
+      }
+    }
     try {
-    await axios.post('http://localhost:8800/addbooking', values);
-    console.log(values);
+      if (editingIndex !== null) {
+        // If editingIndex is not null, it means we are updating an existing booking
+        await axios.put(`http://localhost:8800/updatebooking/${data[editingIndex].id}`, values);
+      } else {
+        // Otherwise, we are adding a new booking
+        await axios.post('http://localhost:8800/addbooking', values);
+      }
+      // Refresh data after adding/updating
+      const formattedDate = selectedDate.toISOString().split('T')[0];
+      const response = await axios.get(`http://localhost:8800/booking?date=${formattedDate}`);
+      setData(response.data);
     } catch (err) {
       console.error(err);
     }
-    setShowModal(false)
-}
+    setShowModal(false);
+  };
+
+  const handleDeleteBooking = async (id) => {
+    try {
+      await axios.delete(`http://localhost:8800/deletebooking/${id}`);
+      // After successful deletion, refresh the data
+      const formattedDate = selectedDate.toISOString().split('T')[0];
+      const response = await axios.get(`http://localhost:8800/booking?date=${formattedDate}`);
+      setData(response.data);
+    } catch (error) {
+      console.error('Error deleting booking:', error);
+    }
+  };
+
   const bookings = data.map((item, index) => (
     <React.Fragment key={index}>
       <tr onMouseEnter={() => handleExpandBooking(index)} onMouseLeave={handleCollapseBooking}>
@@ -97,8 +152,8 @@ useEffect(() => {
         <td>{item.last_name}</td>
         <td>{item.no_guests}</td>
         <td>{item.time}</td>
-        <td><button>Edit</button></td>
-        <td><button>Delete</button></td>
+        <td><button className='buttongreen' onClick={() => handleEditBooking(index)}>Edit</button></td>
+        <td><button className='buttonred' onClick={() => handleDeleteBooking(item.id)}>Delete</button></td>
       </tr>
       {expandedBooking === index && (
         <tr onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
@@ -125,7 +180,7 @@ useEffect(() => {
             onChange={handleDateChange}
             value={selectedDate}
           />
-          <button className='button1' style={{ position: 'absolute', top: '40vw', left: '32vw' }} onClick={handleAddBooking}>ADD BOOKING</button>
+          <button className='buttongreen' style={{ position: 'absolute', top: '40vw', left: '32vw' }} onClick={handleAddBooking}>ADD BOOKING</button>
         </div>
         {showModal && (
           <div className="modal">
@@ -133,14 +188,14 @@ useEffect(() => {
               <span className="close" onClick={handleCloseModal}>&times;</span>
               <form onSubmit={handleSubmit}>
                 {/* Form fields go here */}
-                <input onChange={handleInput} id='first_name' name='first_name' type="text" placeholder="First Name" />
-                <input onChange={handleInput} id='last_name' name='last_name' type="text" placeholder="Last Name" />
-                <input onChange={handleInput} id='email' name='email' type="text" placeholder="E-mail" />
-                <input onChange={handleInput} id='phone' name='phone' type="text" placeholder="Phone" />
-                <input onChange={handleInput} id='no_guests' name='no_guests' type="number" placeholder="Number of Guests" />
-                <input onChange={handleInput} id='time' name='time' type="time" placeholder="Time" />
-                <input onChange={handleInput} id='date' name='date' type="date" placeholder="Date" />
-                <input onChange={handleInput} id='message' name='message' type="text" placeholder="Requirments" />
+                <input onChange={handleInput} required id='first_name' name='first_name' type="text" placeholder="First Name" value={values.first_name} />
+                <input onChange={handleInput} required id='last_name' name='last_name' type="text" placeholder="Last Name" value={values.last_name} />
+                <input onChange={handleInput} id='email' name='email' type="text" placeholder="E-mail" value={values.email} />
+                <input onChange={handleInput} required id='phone' name='phone' type="text" placeholder="Phone" value={values.phone} />
+                <input onChange={handleInput} required id='no_guests' name='no_guests' type="number" placeholder="Number of Guests" value={values.no_guests} />
+                <input onChange={handleInput} required id='time' name='time' type="time" placeholder="Time" value={values.time} />
+                <input onChange={handleInput} required id='date' name='date' type="date" placeholder="Date" value={values.date} />
+                <input onChange={handleInput} id='message' name='message' type="text" placeholder="Requirements" value={values.message} />
                 <button onClick={handleSubmit} type="submit">Submit</button>
               </form>
             </div>
