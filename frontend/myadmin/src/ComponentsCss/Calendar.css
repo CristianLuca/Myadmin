@@ -1,9 +1,9 @@
 .react-calendar {
   position: absolute;
   top: 4vw;
-  left: 20vw;
-  width: 30vw;
-  height: 40vw;
+  left: 15vw;
+  width: 38vw;
+  height: 45vw;
   max-width: 100%;
   background-color: #fff;
   color: #222;
@@ -12,14 +12,18 @@
   font-family: Arial, Helvetica, sans-serif;
   line-height: 1.125em;
 }
+.react-calendar__navigation {
+  width: 100%; /* Take full width of the calendar */
+  display: flex;
+  justify-content: space-between;
+}
 
 .react-calendar__navigation button {
   color: black;
- 
   min-width: 4vw;
   background: none;
   font-size: 1vw;
-  margin-top: 3vw;
+  margin-top: 2vw;
 }
 
 .react-calendar__navigation button:enabled:hover,
@@ -125,5 +129,17 @@ abbr[title] {
 }
 .react-calendar__month-view {
   margin-top: 3vw; /* Adjust the margin-top to move the dates down */
+  text-align: center;
 }
+.react-calendar__tile {
+  border: 0.05vw solid black; /* Set border thickness and color */
+  border-radius: 0vw; /* Optional: Add border radius for rounded corners */
+  margin: 0 !important; /* Remove default margin */
+  padding: 1.5vw; /* Add padding for space around the numbers */
+}
+
+.react-calendar__tile--active {
+  background-color: lightgray; /* Optional: Change background color when date is active */
+}
+
 

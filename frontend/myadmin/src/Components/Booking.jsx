@@ -9,11 +9,15 @@ import '../ComponentsCss/popup.css';
 
 export default function Booking() {
   const [data, setData] = useState([]);
+  
   const [expandedBooking, setExpandedBooking] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [bookingsForSelectedDate, setBookingsForSelectedDate] = useState([]);
   const [showModal, setShowModal] = useState(false); // State to control modal visibility
   const [editingIndex, setEditingIndex] = useState(null); // Index of the booking being edited
+  
   const [values, setValues] = useState({
+    
     first_name: '',
     last_name: '',
     email: '',
@@ -27,8 +31,7 @@ export default function Booking() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const formattedDate = selectedDate.toISOString().split('T')[0];
-        const response = await axios.get(`http://localhost:8800/booking?date=${formattedDate}`);
+        const response = await axios.get(`http://localhost:8800/booking`);
         setData(response.data);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -37,14 +40,12 @@ export default function Booking() {
 
     // Fetch data initially when the component mounts
     fetchData();
-
-    // Refresh data every 5 seconds
-    const intervalId = setInterval(fetchData, 5000);
-
-    // Clear interval on component unmount
-    return () => clearInterval(intervalId);
-  }, [selectedDate]);
-
+  }, []);
+  useEffect(() => {
+    const formattedDate = selectedDate.toISOString().split('T')[0];
+    const bookings = data.filter(booking => booking.date === formattedDate);
+    setBookingsForSelectedDate(bookings);
+  }, [selectedDate, data]);
   const handleCollapseBooking = () => {
     setExpandedBooking(null);
   };
@@ -87,7 +88,7 @@ export default function Booking() {
   };
 
   const handleEditBooking = (index) => {
-    const booking = data[index];
+    const booking = bookingsForSelectedDate[index]; // Get the booking from filtered bookings
     setEditingIndex(index);
     // Set form fields with the values of the selected booking
     setValues({
@@ -118,7 +119,8 @@ export default function Booking() {
     try {
       if (editingIndex !== null) {
         // If editingIndex is not null, it means we are updating an existing booking
-        await axios.put(`http://localhost:8800/updatebooking/${data[editingIndex].id}`, values);
+        const bookingId = bookingsForSelectedDate[editingIndex].id;
+        await axios.put(`http://localhost:8800/updatebooking/${bookingId}`, values);
       } else {
         // Otherwise, we are adding a new booking
         await axios.post('http://localhost:8800/addbooking', values);
@@ -132,6 +134,7 @@ export default function Booking() {
     }
     setShowModal(false);
   };
+  
 
   const handleDeleteBooking = async (id) => {
     try {
@@ -145,7 +148,20 @@ export default function Booking() {
     }
   };
 
-  const bookings = data.map((item, index) => (
+  
+  const countBookingsForDate = (date) => {
+    const formattedDate = date.toISOString().split('T')[0];
+    return data.filter(booking => booking.date === formattedDate).length;
+  };
+  const renderTileContent = ({ date }) => {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        
+        <p style={{ margin: '0', fontSize: '12px' }}>{countBookingsForDate(date)} booking(s)</p>
+      </div>
+    );
+  };
+  const bookings = bookingsForSelectedDate.map((item, index) => (
     <React.Fragment key={index}>
       <tr onMouseEnter={() => handleExpandBooking(index)} onMouseLeave={handleCollapseBooking}>
         <td>{item.first_name}</td>
@@ -169,18 +185,18 @@ export default function Booking() {
       )}
     </React.Fragment>
   ));
-
   return (
     <div style={{ backgroundColor: 'black', minHeight: '100vh' }}>
       <Navbar />
       <div>
         <div>
-          <Calendar
-            className='react-calendar react-calendar__navigation react-calendar__navigation react-calendar__tile '
-            onChange={handleDateChange}
+        <Calendar
+            className='react-calendar'
+            onChange={setSelectedDate}
             value={selectedDate}
+            tileContent={renderTileContent}
           />
-          <button className='buttongreen' style={{ position: 'absolute', top: '40vw', left: '32vw' }} onClick={handleAddBooking}>ADD BOOKING</button>
+          <button className='buttongreen' style={{ position: 'absolute', top: '45vw', left: '30vw' }} onClick={handleAddBooking}>ADD BOOKING</button>
         </div>
         {showModal && (
           <div className="modal">
@@ -214,8 +230,8 @@ export default function Booking() {
               </tr>
             </thead>
             <tbody>
-              {bookings}
-            </tbody>
+            {bookings}
+          </tbody>
           </table>
         </div>
       </div>
