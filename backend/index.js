@@ -145,6 +145,117 @@ app.delete('/deletebooking/:id', (req, res) => {
   });
 });
 
+// Fetch all stocks
+app.get('/stock', (req, res) => {
+  const sql = 'SELECT * FROM stock';
+  db.query(sql, (error, results) => {
+    if (error) {
+      console.error('Error fetching stocks:', error);
+      res.status(500).json({ error: 'Internal server error' });
+      return;
+    }
+    res.json(results);
+  });
+});
+
+// Add a new stock
+app.post('/addstock', (req, res) => {
+  const { product_name, expiry_date, quantity_left, unit, kg_unit, stock_level } = req.body;
+  const sql = 'INSERT INTO stock (product_name, expiry_date, quantity_left, unit, kg_unit, stock_level) VALUES (?, ?, ?, ?, ?, ?)';
+  const values = [product_name, expiry_date, quantity_left, unit, kg_unit, stock_level];
+  db.query(sql, values, (err, data) => {
+    if (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Internal server error' });
+      return;
+    }
+    res.json({ message: 'Stock added successfully' });
+  });
+});
+
+// Update existing stock
+app.put('/updatestock/:id', (req, res) => {
+  const stockId = req.params.id;
+  const { product_name, expiry_date, quantity_left, unit, kg_unit, stock_level } = req.body;
+  const sql = 'UPDATE stock SET product_name=?, expiry_date=?, quantity_left=?, unit=?, kg_unit=?, stock_level=? WHERE id=?';
+  const values = [product_name, expiry_date, quantity_left, unit, kg_unit, stock_level, stockId];
+  db.query(sql, values, (err, data) => {
+    if (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Internal server error' });
+      return;
+    }
+    res.json({ message: 'Stock updated successfully' });
+  });
+});
+
+// Delete a stock
+app.delete('/deletestock/:id', (req, res) => {
+  const stockId = req.params.id;
+  const sql = 'DELETE FROM stock WHERE id = ?';
+  db.query(sql, [stockId], (err, data) => {
+    if (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Internal server error' });
+      return;
+    }
+    res.json({ message: 'Stock deleted successfully' });
+  });
+});
+app.get('/tables', (req, res) => {
+  const sql = 'SELECT * FROM tables';
+  db.query(sql, (err, result) => {
+    if (err) {
+      console.error('Error fetching tables:', err);
+      res.status(500).json({ error: 'Internal server error' });
+      return;
+    }
+
+    // Parse the position from JSON string to object for each table
+    const tablesWithParsedPosition = result.map((table) => {
+      return {
+        ...table,
+        position: JSON.parse(table.position),
+      };
+    });
+
+    res.json(tablesWithParsedPosition);
+  });
+});
+
+
+app.post('/tables', (req, res) => {
+  const { name, position } = req.body;
+  const sql = 'INSERT INTO tables (name, position) VALUES (?, ?)';
+  const values = [name, JSON.stringify(position)];
+
+  db.query(sql, values, (err, result) => {
+    if (err) {
+      console.error('Error adding table:', err);
+      res.status(500).json({ error: 'Internal server error' });
+      return;
+    }
+
+    const insertedTable = { id: result.insertId, name, position };
+    res.json(insertedTable);
+  });
+});
+app.put('/tables/:id', (req, res) => {
+  const tableId = req.params.id;
+  const { position } = req.body;
+  const sql = 'UPDATE tables SET position=? WHERE id=?';
+  const values = [JSON.stringify(position), tableId];
+
+  db.query(sql, values, (err, result) => {
+    if (err) {
+      console.error('Error updating table position:', err);
+      res.status(500).json({ error: 'Internal server error' });
+      return;
+    }
+
+    res.json({ message: 'Table position updated successfully' });
+  });
+});
 app.listen(8800, () => {
   console.log("Server is running on port 8800");
 });
