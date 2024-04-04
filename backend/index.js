@@ -202,6 +202,7 @@ app.delete('/deletestock/:id', (req, res) => {
     res.json({ message: 'Stock deleted successfully' });
   });
 });
+
 app.get('/tables', (req, res) => {
   const sql = 'SELECT * FROM tables';
   db.query(sql, (err, result) => {
@@ -256,6 +257,185 @@ app.put('/tables/:id', (req, res) => {
     res.json({ message: 'Table position updated successfully' });
   });
 });
+app.delete('/tables/:id', (req, res) => {
+  const tableId = req.params.id;
+
+  const sqlDelete = 'DELETE FROM tables WHERE id = ?';
+
+  db.query(sqlDelete, [tableId], (err, data) => {
+    if (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Internal server error' });
+      return;
+    }
+
+    // After deletion, fetch all remaining tables from the database
+    const sqlFetchTables = 'SELECT * FROM tables';
+    db.query(sqlFetchTables, (err, tables) => {
+      if (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Internal server error' });
+        return;
+      }
+
+      // Update the names of the remaining tables based on their index
+      const updatedTables = tables.map((table, index) => ({
+        ...table,
+        name: `Table ${index + 1}`
+      }));
+
+      // Update the names of tables in the database
+      const sqlUpdateName = 'UPDATE tables SET name = ? WHERE id = ?';
+      updatedTables.forEach((table) => {
+        db.query(sqlUpdateName, [table.name, table.id], (err, data) => {
+          if (err) {
+            console.error(err);
+            res.status(500).json({ error: 'Internal server error' });
+            return;
+          }
+        });
+      });
+
+      res.json({ message: 'Table deleted successfully and names updated' });
+    });
+  });
+});
+
+app.get('/menu', (req, res) => {
+  const sql = 'SELECT * FROM menu';
+  db.query(sql, (error, results) => {
+    if (error) {
+      console.error('Error fetching menu:', error);
+      res.status(500).json({ error: 'Internal server error' });
+      return;
+    }
+    res.json(results);
+  });
+});
+// Add a new menu item
+app.post('/addmenu', (req, res) => {
+  const { item_name, price, ingredients, category } = req.body;
+  const sql = 'INSERT INTO menu (item_name, price, ingredients, category) VALUES (?, ?, ?, ?)';
+  const values = [item_name, price, ingredients, category];
+  db.query(sql, values, (err, data) => {
+    if (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Internal server error' });
+      return;
+    }
+    res.json({ message: 'Menu item added successfully' });
+  });
+});
+// Delete a stock
+app.delete('/deletemenu/:id', (req, res) => {
+  const menuId = req.params.id;
+  const sql = 'DELETE FROM menu WHERE id = ?';
+  db.query(sql, [menuId], (err, data) => {
+    if (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Internal server error' });
+      return;
+    }
+    res.json({ message: 'Stock deleted successfully' });
+  });
+});
+
+app.put('/updatemenu/:id', (req, res) => {
+  const menuId = req.params.id;
+  const { item_name, price, ingredients, category} = req.body;
+  const sql = 'UPDATE menu SET item_name=?, price=?, ingredients=?, category=? WHERE id=?';
+  const values = [item_name, price, ingredients, category, menuId];
+  db.query(sql, values, (err, data) => {
+    if (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Internal server error' });
+      return;
+    }
+    res.json({ message: 'Menu updated successfully' });
+  });
+});
+
+app.post('/add-to-order', (req, res) => {
+  const { item_name, price, table_nr, status, date } = req.body;
+  const sql = 'INSERT INTO orders (item_name, price, table_nr, status, date) VALUES (?, ?, ?, ?, ?)';
+  const values = [item_name, price, table_nr, status, date];
+  
+  // Execute the SQL query
+  db.query(sql, values, (err, result) => {
+    if (err) {
+      console.error('Error adding order to database:', err);
+      res.status(500).json({ error: 'Internal server error' });
+      return;
+    }
+    console.log('Order added successfully');
+    res.json({ message: 'Order added successfully' });
+  });
+});
+app.get('/orders', (req, res) => {
+  const { table_nr } = req.query; // Access table_nr from query parameters
+  const sql = 'SELECT id, item_name, price FROM orders WHERE table_nr = ? AND status = ?';
+  const values = [table_nr, 'active'];
+
+  // Execute the SQL query
+  db.query(sql, values, (err, results) => {
+    if (err) {
+      console.error('Error fetching order items:', err);
+      res.status(500).json({ error: 'Internal server error' });
+      return;
+    }
+    console.log('Order items fetched successfully');
+    res.json(results); // Send the fetched order items as response
+  });
+});
+app.get('/getorders', (req, res) => {
+ 
+  const sql = 'SELECT * FROM orders ';
+  
+
+  // Execute the SQL query
+  db.query(sql,(err, results) => {
+    if (err) {
+      console.error('Error fetching order items:', err);
+      res.status(500).json({ error: 'Internal server error' });
+      return;
+    }
+    console.log('blabla');
+    res.json(results); // Send the fetched order items as response
+  });
+});
+app.delete('/deleteorders/:id', (req, res) => {
+  const id = req.params.id;
+
+  const sql = 'DELETE FROM orders WHERE id = ?';
+
+  db.query(sql, [id], (err, result) => {
+    if (err) {
+      console.error('Error deleting order:', err);
+      res.status(500).json({ error: 'Internal server error' });
+      return;
+    }
+    console.log('Order deleted successfully');
+    res.status(204).end(); // Send 204 status code for successful deletion
+  });
+});
+// Update order status endpoint
+app.put('/updateorders', (req, res) => {
+  const { table_nr, status, payment_method } = req.body;
+
+  // Update the status of orders for the specified table number
+  const sql = 'UPDATE orders SET status = ?, payment_method = ? WHERE table_nr = ? AND status = ?';
+  
+  db.query(sql, [status, payment_method, table_nr, 'active'], (err, results) => {
+    if (err) {
+      console.error('Error updating order status:', err);
+      res.status(500).json({ error: 'Internal server error' });
+      return;
+    }
+
+    res.sendStatus(200); // Send success response
+  });
+});
+
 app.listen(8800, () => {
   console.log("Server is running on port 8800");
 });
