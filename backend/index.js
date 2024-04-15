@@ -44,6 +44,62 @@ app.get('/staff', (req, res) => {
     res.json(results);
   });
 });
+app.get('/clock-records', (req, res) => {
+  const { employee_id, date } = req.query;
+
+  // Query the database to fetch clock records for the specified employee and date
+  const sql = 'SELECT * FROM clock_records WHERE employee_id = ? AND DATE(clock_in_time) = ?';
+  db.query(sql, [employee_id, date], (err, result) => {
+    if (err) {
+      console.error('Error fetching clock records:', err);
+      res.status(500).send('Error fetching clock records');
+    } else {
+      res.status(200).json(result);
+    }
+  });
+});
+app.get('/clock-records-week', (req, res) => {
+  const { employee_id, start_date, end_date } = req.query;
+
+  // Query the database to fetch clock records for the specified employee and date range
+  const sql = 'SELECT * FROM clock_records WHERE employee_id = ? AND DATE(clock_in_time) BETWEEN ? AND ?';
+  db.query(sql, [employee_id, start_date, end_date], (err, result) => {
+    if (err) {
+      console.error('Error fetching clock records:', err);
+      res.status(500).send('Error fetching clock records');
+    } else {
+      res.status(200).json(result);
+    }
+  });
+});
+
+// Clock In Endpoint
+app.post('/clock-in', (req, res) => {
+  const { fullName, time, employee_id } = req.body;
+  const sql = 'INSERT INTO clock_records (employee_name, clock_in_time, employee_id) VALUES (?, ?, ?)';
+  db.query(sql, [fullName, time, employee_id], (err, result) => {
+    if (err) {
+      console.error('Error clocking in:', err);
+      res.status(500).send('Error clocking in');
+    } else {
+      res.status(200).send('Clock in successful');
+    }
+  });
+});
+
+// Clock Out Endpoint
+app.post('/clock-out', (req, res) => {
+  const { fullName, time, employee_id } = req.body;
+  const sql = 'UPDATE clock_records SET clock_out_time = ? WHERE employee_name = ? AND clock_out_time IS NULL';
+  db.query(sql, [time, fullName, employee_id], (err, result) => {
+    if (err) {
+      console.error('Error clocking out:', err);
+      res.status(500).send('Error clocking out');
+    } else {
+      res.status(200).send('Clock out successful');
+    }
+  });
+});
 
 app.post('/addbooking', (req, res) => {
   const { first_name, last_name, email, phone, no_guests, date, time, message } = req.body;
@@ -59,9 +115,9 @@ app.post('/addbooking', (req, res) => {
   });
 });
 app.post('/addstaff', (req, res) => {
-  const { first_name, last_name, initials, role, payrate} = req.body;
-  const sql = 'INSERT INTO staff (first_name, last_name, initials, role, payrate) VALUES (?, ?, ?, ?, ?)';
-  const values = [first_name, last_name, initials, role, payrate];
+  const { first_name, last_name, initials, role, payrate, password} = req.body;
+  const sql = 'INSERT INTO staff (first_name, last_name, initials, role, payrate, password) VALUES (?, ?, ?, ?, ?, ?)';
+  const values = [first_name, last_name, initials, role, payrate, password];
   db.query(sql, values, (err, data) => {
     if (err) {
       console.error(err);
@@ -117,6 +173,36 @@ app.get('/assigned-staff', async (req, res) => {
 
 
 
+app.post('/verify-password', (req, res) => {
+  const { id, password } = req.body;
+  
+  // Query to fetch the password of the employee with the given ID
+  const sql = 'SELECT password FROM staff WHERE id = ?';
+  
+  // Execute the query to fetch the password
+  db.query(sql, [id, password], (error, results) => {
+    if (error) {
+      console.error('Error fetching password:', error);
+      res.status(500).json({ error: 'Internal server error' });
+      return;
+    }
+
+    // Check if the password matches
+    if (results.length === 0) {
+      res.status(404).json({ error: 'Employee not found' });
+      return;
+    }
+    
+    const storedPassword = results[0].password;
+    if (storedPassword === password) {
+      // Password matches
+      res.json('success');
+    } else {
+      res.json('denied')
+    }
+  });
+});
+
 app.put('/updatebooking/:id', (req, res) => {
   const bookingId = req.params.id;
   const { first_name, last_name, email, phone, no_guests, date, time, message } = req.body;
@@ -160,9 +246,9 @@ app.get('/stock', (req, res) => {
 
 // Add a new stock
 app.post('/addstock', (req, res) => {
-  const { product_name, expiry_date, quantity_left, unit, kg_unit, stock_level } = req.body;
-  const sql = 'INSERT INTO stock (product_name, expiry_date, quantity_left, unit, kg_unit, stock_level) VALUES (?, ?, ?, ?, ?, ?)';
-  const values = [product_name, expiry_date, quantity_left, unit, kg_unit, stock_level];
+  const { product_name, expiry_date, quantity_left, unit, kg_unit, stock_level, paid, bought_date } = req.body;
+  const sql = 'INSERT INTO stock (product_name, expiry_date, quantity_left, unit, kg_unit, stock_level, paid, bought_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+  const values = [product_name, expiry_date, quantity_left, unit, kg_unit, stock_level, paid, bought_date];
   db.query(sql, values, (err, data) => {
     if (err) {
       console.error(err);
@@ -176,9 +262,9 @@ app.post('/addstock', (req, res) => {
 // Update existing stock
 app.put('/updatestock/:id', (req, res) => {
   const stockId = req.params.id;
-  const { product_name, expiry_date, quantity_left, unit, kg_unit, stock_level } = req.body;
-  const sql = 'UPDATE stock SET product_name=?, expiry_date=?, quantity_left=?, unit=?, kg_unit=?, stock_level=? WHERE id=?';
-  const values = [product_name, expiry_date, quantity_left, unit, kg_unit, stock_level, stockId];
+  const { product_name, expiry_date, quantity_left, unit, kg_unit, stock_level, paid } = req.body;
+  const sql = 'UPDATE stock SET product_name=?, expiry_date=?, quantity_left=?, unit=?, kg_unit=?, stock_level=?, paid = ? WHERE id=?';
+  const values = [product_name, expiry_date, quantity_left, unit, kg_unit, stock_level, paid, stockId];
   db.query(sql, values, (err, data) => {
     if (err) {
       console.error(err);

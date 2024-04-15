@@ -343,9 +343,9 @@ const handlePayment = async (payment_method) => {
       ))}
     {!showTables && (
       <div style={{ position: 'absolute', top: '5vw', left: '7vw', width: '30vw', height: '46vw', backgroundColor: 'white', borderRadius: '0.5vw' }}>
-        <button style={{ position: 'relative', fontSize: '1vw' }} onClick={handleShowTables}>
+        <button style={{ position: 'relative', fontSize: '1vw', top:'0.8vw', left:'0.8vw' }} onClick={handleShowTables}>
           {' '}
-          <a style={{ position: 'relative', size: '1vw' }}>&#8249; </a> TABLES{' '}
+          <a  style={{ position: 'relative', size: '1vw' }}>&#8249; </a> TABLES{' '}
         </button>
         <p className='gelasio' style={{ position: 'relative', left: '13vw', top: '0vw' }}>
           {selectedTable}
@@ -375,16 +375,16 @@ const handlePayment = async (payment_method) => {
     </table>
     </div>
         <p style={{ position: 'absolute', top: '38vw', left: '12vw' }}> TOTAL: £{totalPrice} </p>
-        <button onClick={handlePrintBill} className='buttongreen' style={{ position: 'absolute', width: '9vw', height: '2.5vw', top: '78vh', left: '3vw' }}> BILL</button>
+        <button onClick={handlePrintBill} className='buttongreen' style={{ position: 'absolute', width: '9vw', height: '2.5vw', top: '78vh', left: '3vw', color:'black' }}> BILL</button>
         
-        <button onClick = {handlePay} className='buttongreen' style={{ position: 'absolute', width: '9vw', height: '2.5vw', top: '78vh', left: '18vw' }}> PAY</button>
-        {!modifyMode && <button  className= 'buttongreen' style={{position: 'absolute', top: '0vw',left: '85vw',padding: '10px',color: 'white',borderRadius: '5px',cursor: 'pointer',width:'7vw' }} onClick={toggleModifyMode}>
+        <button onClick = {handlePay} className='buttongreen' style={{ position: 'absolute', width: '9vw', height: '2.5vw', top: '78vh', left: '18vw', color:'black' }}> PAY</button>
+        {!modifyMode && <button  className= 'buttongreen' style={{position: 'absolute', top: '-4.9vw',left: '85vw',padding: '10px',color: 'black',borderRadius: '5px',cursor: 'pointer',width:'7vw' }} onClick={toggleModifyMode}>
           Modify Menu
         </button> }
         
         { modifyMode && (
           <div> 
-            <button className= 'buttongreen' style={{position: 'absolute',top: '0vw', left: '85vw', padding: '10px', color: 'white', borderRadius: '5px', cursor: 'pointer', width:'7vw'}} onClick={handleAddMenu}>
+            <button className= 'buttongreen' style={{position: 'absolute',top: '-4.9vw', left: '85vw', padding: '10px', color: 'black', borderRadius: '5px', cursor: 'pointer', width:'7vw'}} onClick={handleAddMenu}>
           Add Product
         </button>
           </div>
@@ -408,15 +408,15 @@ const handlePayment = async (payment_method) => {
           <div className='modal'>
             <div style={{textAlign:'center'}} className='modal-content'>
             <span className="close" onClick={handleClosePayModal}>&times;</span>
-            <button className='buttonred' onClick={() => handlePayment('card')} style={{ width:'6vw', height:'5vw'}}> CARD</button>
-            <button className= 'buttongreen' onClick={() => handlePayment('cash')} style = {{ marginLeft:'1vw', width:'6vw', height:'5vw'}}>CASH</button>
+            <button className='buttonred' onClick={() => handlePayment('card')} style={{ width:'6vw', height:'5vw', color:'black'}}> CARD</button>
+            <button className= 'buttongreen' onClick={() => handlePayment('cash')} style = {{ marginLeft:'1vw', width:'6vw', height:'5vw', color:'black'}}>CASH</button>
             </div>
           </div>
         )}
-        <div style={{position: 'relative',left:'31.2vw' ,top:'-32vw', width:'59vw'}}>
+        <div style={{position: 'relative',left:'31.2vw' ,top:'-36.5vw', width:'59vw'}}>
           {/* Render buttons for each category */}
           {Array.from(new Set(menu.map((item) => item.category))).map((category) => (
-            <button className='buttongreen' style = {{justifyContent:'space-between', width:'5vw',backgroundColor:'grey', marginRight:'1vw', marginTop:'1vw', padding:'1vw'}} key={category} onClick={() => handleCategoryClick(category)}>{category}</button>
+            <button className='buttongreen' style = {{justifyContent:'space-between', width:'7vw',backgroundColor:'white', marginRight:'1vw', marginTop:'1vw', padding:'1vw'}} key={category} onClick={() => handleCategoryClick(category)}>{category}</button>
           ))}
         </div>
         <div style={{position: 'relative',left:'31vw', top:'-30vw', width:'59vw'}}>
@@ -441,11 +441,11 @@ const handlePayment = async (payment_method) => {
       <button className='buttongreen'
         style={{
           position: 'absolute',
-          top: '5vw',
-          left: '85vw',
+          top: '0.1vw',
+          left: '90vw',
           padding: '10px',
           
-          color: 'white',
+          color: 'black',
           borderRadius: '5px',
           cursor: 'pointer',
         }}
@@ -458,11 +458,11 @@ const handlePayment = async (payment_method) => {
       <button className='buttongreen'
         style={{
           position: 'absolute',
-          top: '5vw',
+          top: '0.1vw',
           left: '85vw',
           
           
-          color: 'white',
+          color: 'black',
           
           cursor: 'pointer',
         }}
@@ -475,11 +475,11 @@ const handlePayment = async (payment_method) => {
       <button className='buttongreen'
         style={{
           position: 'absolute',
-          top: '5vw',
+          top: '0.1vw',
           left: '90vw',
           
           
-          color: 'white',
+          color: 'black',
           
           cursor: 'pointer',
         }}

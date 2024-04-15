@@ -16,6 +16,8 @@ export default function Stock() {
     unit: '',
     kg_unit: '',
     stock_level: '',
+    paid: '',
+    bought_date: new Date().toISOString().split('T')[0]
   });
   
   useEffect(() => {
@@ -49,6 +51,7 @@ export default function Stock() {
       unit: stock.unit,
       kg_unit: stock.kg_unit,
       stock_level: stock.stock_level,
+      paid: stock.paid
     });
     setShowModal(true);
   };
@@ -61,6 +64,8 @@ export default function Stock() {
       unit: '',
       kg_unit: '',
       stock_level: '',
+      paid:'',
+      bought_date: new Date().toISOString().split('T')[0]
     });
     setShowModal(true);
   };
@@ -143,6 +148,8 @@ export default function Stock() {
                 <input onChange={handleInput} required id='unit' name='unit' type="text" placeholder="Unit(e.g Bag/Box)" value={values.unit} />
                 <input onChange={handleInput} required id='kg_unit' name='kg_unit' type="text" placeholder="Kg/Buc per unit" value={values.kg_unit} />
                 <input onChange={handleInput} required id='stock_level' name='stock_level' type="text" placeholder='Good/Low' value={values.stock_level} />
+                <input onChange={handleInput} required id='paid' name='paid' type="text" placeholder='Paid Amount(total)' value={values.paid} />
+                
                 <button onClick={handleSubmit} type="submit">Submit</button>
               </form>
             </div>
