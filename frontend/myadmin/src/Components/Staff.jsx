@@ -18,6 +18,8 @@ export default function Staff() {
   const [view, setView] = useState('standard')
   const [clockedIn, setClockedIn] = useState(false)
   const [password, setPassword] = useState('');
+  const [editingIndex, setEditingIndex] = useState(null);
+  
 
   const [todayWorked, setTodayWorked] = useState({ totalHoursWorked: 0 });
   const [thisWeekWorked, setThisWeekWorked] = useState({totalHoursWorked: 0});
@@ -31,7 +33,7 @@ export default function Staff() {
     payrate: '',
     password:'',
   });
-  // Inside your component function
+  
 const [selectedEmployee, setSelectedEmployee] = useState(null);
 // Function to calculate total hours worked
 const calculateHoursWorked = (clockInTime, clockOutTime) => {
@@ -55,26 +57,25 @@ const calculateHoursWorked = (clockInTime, clockOutTime) => {
 const earnings = async() => {
   // Fetch clock in record for today after clocking in
   if (clockedIn || !clockedIn) {
-    const today = new Date().toISOString().split('T')[0]; // Get today's date
+    const today = new Date().toISOString().split('T')[0]; 
     const clockInResponse = await axios.get(`http://localhost:8800/clock-records?employee_id=${selectedEmployee.id}&date=${today}`);
     
     if (clockInResponse.status === 200) {
       const clockInRecord = clockInResponse.data;
       
       if (clockInRecord.length > 0) {
-        // If clock in records exist for today
+        
         let totalHoursWorked = 0;
 
-        // Loop through all clock in records for today
         clockInRecord.forEach(record => {
-          // Calculate hours worked for each entry
+          
           const hoursWorked = calculateHoursWorked(record.clock_in_time, record.clock_out_time);
           
-          // Add hours worked to total hours
+          
           totalHoursWorked += hoursWorked;
         });
-
-        // Set the total hours worked for today
+        
+        
         setTodayWorked({
           totalHoursWorked: totalHoursWorked,
         });
@@ -85,10 +86,10 @@ const earnings = async() => {
         });
       }
     } else {
-      // Handle error fetching clock in record
+      console.log('Error fetching the data')
     }
+   
   }
-      // Get today's date
       const today = new Date();
 
       // Calculate the difference in days between today and Monday
@@ -101,7 +102,7 @@ const earnings = async() => {
       // Calculate the end of the week
       const endOfWeek = new Date(today);
       endOfWeek.setDate(startOfWeek.getDate() + 6);
-            // Format start and end dates in YYYY-MM-DD format
+            
             const formattedStartDate = startOfWeek.toISOString().split('T')[0];
             const formattedEndDate = endOfWeek.toISOString().split('T')[0];
       
@@ -113,37 +114,60 @@ const earnings = async() => {
       
               let totalHoursWorked = 0;
               console.log(clockRecords)
-              // Loop through all clock records for this week
+            
               clockRecords.forEach(record => {
-                // Calculate hours worked for each entry
+                
                 const hoursWorked = calculateHoursWorked(record.clock_in_time, record.clock_out_time);
-      
-                // Add hours worked to total hours
-        
+
                 totalHoursWorked += hoursWorked;
                 
                 console.log(totalHoursWorked)
               });
       
-              // Set the total hours worked for this week
+              
               setThisWeekWorked({ totalHoursWorked: totalHoursWorked });
       
              
               
             } else {
-              // Handle error fetching clock records for this week
+              console.log('Error fetching data')
             }
 }
+useEffect(() => {
+  const storedClockInData = localStorage.getItem('clockInData');
+  if (storedClockInData !== null && selectedEmployee) { 
+    const parsedData = JSON.parse(storedClockInData);
+
+    if (parsedData[selectedEmployee.id]) {
+      setClockedIn(parsedData[selectedEmployee.id].clockedIn); 
+    } else {
+   
+      setClockedIn(false); 
+    }
+  }
+}, [selectedEmployee]); 
 const handleClockInOut = async () => {
   try {
     const response = await axios.post(`http://localhost:8800/${clockedIn ? 'clock-out' : 'clock-in'}`, {
       employee_id: selectedEmployee.id,
       fullName: `${selectedEmployee.first_name} ${selectedEmployee.last_name}`,
-      time: new Date().toISOString() // Current time
+      time: new Date().toISOString(), 
+      payrate: selectedEmployee.payrate,
     });
 
     if (response.status === 200) {
       setClockedIn(!clockedIn);
+      if (selectedEmployee) {
+        const storedClockInData = localStorage.getItem('clockInData') || '{}';
+        const parsedData = JSON.parse(storedClockInData);
+  
+        parsedData[selectedEmployee.id] = {
+          clockedIn: !clockedIn 
+        };
+  
+        localStorage.setItem('clockInData', JSON.stringify(parsedData));
+      }
+      
       earnings();
     }
     
@@ -157,13 +181,20 @@ const handleEmployeeClick = (employee) => {
   setSelectedEmployee(employee);
   setLogin(true);
 };
-const handleLogOut = () => {
+const handleLogOut = async() => {
 setLogin(false);
 setView('standard');
 setSelectedEmployee(null);
 setPassword('');
 setTodayWorked({totalHoursWorked: 0});
 setThisWeekWorked({totalHoursWorked: 0})
+try {
+  await axios.put(`http://localhost:8800/update-weekly-hours/${selectedEmployee.id}`, {
+    hoursWorkedThisWeek: thisWeekWorked.totalHoursWorked 
+  });
+} catch (error) {
+  console.error('Error updating weekly hours:', error);
+}
 }
 const handlePasswordSubmit = async (event) => {
   event.preventDefault();
@@ -200,6 +231,17 @@ const handlePasswordSubmit = async (event) => {
   };
 
   const handleAddStaff = () => {
+    setEditingIndex(null);
+    setValues({
+    employee: [], 
+    first_name: '',
+    last_name: '',
+    initials: '',
+    role: '',
+    hours_worked: '',
+    payrate: '',
+    password:'',}
+    )
     setshowModal(true);
   };
 
@@ -223,21 +265,51 @@ const handlePasswordSubmit = async (event) => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    for (const key in values) {
-      if (values[key] === '' && key !== 'hours_worked') {
-        alert(`${key.replace('_', ' ')} is required`);
-        return;
-      }
-    }
+   
     try {
-      await axios.post('http://localhost:8800/addstaff', values);
+      if (editingIndex !== null) {
+        // If editingIndex is not null, it means we are updating an existing booking
+        const employeeId = data[editingIndex].id;
+        await axios.put(`http://localhost:8800/updateemployee/${employeeId}`, values);
+      } else {
+        // Otherwise, we are adding a new booking
+        await axios.post('http://localhost:8800/addstaff', values);
+      }
+     
+      
+      const response = await axios.get(`http://localhost:8800/staff`);
       setData(response.data);
     } catch (err) {
       console.error(err);
     }
     setshowModal(false);
   };
-
+  const handleDeleteEmployee = async (id) => {
+    try {
+      await axios.delete(`http://localhost:8800/deleteemployee/${id}`);
+      
+     
+      const response = await axios.get(`http://localhost:8800/staff`);
+      setData(response.data);
+    } catch (error) {
+      console.error('Error deleting staff:', error);
+    }
+  };
+  const handleEditEmployee = (index) => {
+    const employee = data[index]; 
+    setEditingIndex(index);
+    
+    setValues({
+      first_name: employee.first_name,
+      last_name: employee.last_name,
+      initials: employee.initials,
+      role: employee.role,
+      payrate: employee.payrate,
+      password: employee.password,
+      
+    });
+    setshowModal(true); // Open the modal for editing
+  };
   const handleAssignEmployeeSubmit = async (event) => {
     event.preventDefault();
 
@@ -252,10 +324,10 @@ const handlePasswordSubmit = async (event) => {
         date: selectedDate,
         employees: values.employee,
       });
-      // Handle success
+      
     } catch (err) {
       console.error(err);
-      // Handle error
+      
     }
 
     setShowAssignEmployeeModal(false);
@@ -273,7 +345,7 @@ const handlePasswordSubmit = async (event) => {
 
     fetchData();
 
-    const intervalId = setInterval(fetchData, 5000);
+    const intervalId = setInterval(fetchData, 1000);
 
     return () => clearInterval(intervalId);
   }, []);
@@ -281,7 +353,7 @@ const handlePasswordSubmit = async (event) => {
   
   
   
- // Modify the staff mapping to make employee names clickable
+
 const staff = data.map((item, index) => (
   <React.Fragment key={index}>
     <tr className='gelasio'>
@@ -290,6 +362,8 @@ const staff = data.map((item, index) => (
       <td>{item.initials}</td>
       <td>{item.role}</td>
       <td>{item.hours_worked}</td>
+      <td><button className='buttongreen' onClick={() => handleEditEmployee(index)}>Edit</button></td>
+      <td><button className='buttonred' onClick={() => handleDeleteEmployee(item.id)}>Delete</button></td>
     </tr>
   </React.Fragment>
 ));
@@ -304,7 +378,7 @@ const staff = data.map((item, index) => (
         <div className="modal-content">
           <span className="close" onClick={handleCloseModal}>&times;</span>
           <form onSubmit={handlePasswordSubmit} >
-            {/* Form fields go here */}
+           
            
             <input type="password" 
             placeholder="Enter password" 
@@ -323,7 +397,7 @@ const staff = data.map((item, index) => (
           <button onClick={handleLogOut} className='buttonred' style={{position:'absolute',top:'0.1vw', left:'94vw'}}>LOG OUT </button>
           <button onClick={handleClockInOut} style={{position:'relative', color:'white', borderRadius:'20vw', border:'0.2vw green', backgroundColor: clockedIn ? 'red' : 'green', width:'12vw', height:'12vw', left:'42.8vw', top:'2vw' }}>{clockedIn ? "Clock Out" : "Clock In"}</button>
           <p style={{position:'relative', top:'-10vw',left:'15vw', fontSize:'1.4vw', color:'white', width:'13vw', textAlign:'center'}}> Hours Worked Today: </p>
-          <p style={{ position:'relative', top:'-9vw',left:'17.5vw', fontSize:'4vw', color:'white', width:'1vw'}}>{todayWorked.totalHoursWorked.toFixed(8) ?? 0}  </p>
+          <p style={{ position:'relative', top:'-9vw',left:'17.5vw', fontSize:'4vw', color:'white', width:'1vw'}}>{todayWorked.totalHoursWorked.toFixed(2) ?? 0}  </p>
           <p style={{position:'relative', top:'-20vw',left:'70vw', fontSize:'1.4vw', color:'white', width:'13vw', textAlign:'center'}}> Hours Worked This Week: </p>
           <p style={{ position:'relative', top:'-19.3vw',left:'72.3vw', fontSize:'4vw', color:'white', width:'1vw'}}> {thisWeekWorked.totalHoursWorked.toFixed(2) ?? 0} </p>
           <p style={{position:'relative', top:'-3vw',left:'10vw', fontSize:'1.4vw', color:'white', width:'20vw', textAlign:'left'}}> Earnings this week: £{(thisWeekWorked.totalHoursWorked * selectedEmployee.payrate).toFixed(2)} </p>
@@ -361,7 +435,7 @@ const staff = data.map((item, index) => (
                     <div className="">
             <span className="close" onClick={handleCloseModal}>&times;</span>
             <form onSubmit={handleAssignEmployeeSubmit}>
-              <h2>Assign Employees for {selectedDate.toLocaleDateString()}</h2>
+              <h2>Assign Employees for {selectedDate.toISOString().split('T')[0]}</h2>
               <select name="employee" onChange={handleInput} value={values.employee} multiple>
                 <option value="">Select an employee</option>
                 {data.map((item, index) => (
@@ -380,13 +454,13 @@ const staff = data.map((item, index) => (
     <div className="modal-content">
       <span className="close" onClick={handleCloseModal}>&times;</span>
       <form onSubmit={handleSubmit} >
-        {/* Form fields go here */}
+      
         <input onChange={handleInput} required id='first_name' name='first_name' type="text" placeholder="First Name" value={values.first_name} />
         <input onChange={handleInput} required id='last_name' name='last_name' type="text" placeholder="Last Name" value={values.last_name} />
         <input onChange={handleInput} id='initials' name='initials' type="text" placeholder="Employee Initials" value={values.initials} />
         <input onChange={handleInput} required id='role' name='role' type="text" placeholder="Role" value={values.role} />
         <input onChange={handleInput} required id='payrate' name='payrate' type="text" placeholder="Payrate" value={values.payrate} />
-        <input onChange={handleInput} required id='password' name='password' type="Password" placeholder="Password for employee"  />
+        <input onChange={handleInput} required id='password' name='password' type="Password" placeholder="Password for employee" value ={values.password}  />
         <button  onClick={handleSubmit} type="submit">Submit</button>
       </form>
     </div>
@@ -400,8 +474,9 @@ const staff = data.map((item, index) => (
               <th>Last Name</th>
               <th>Initials</th>
               <th>Role</th>
-              <th>Hours worked this week</th>
-              <th>Hours worked this Month</th>
+              <th>H Worked/Week</th>
+              <th>Edit</th>
+              <th>Delete</th>
             </tr>
           </thead>
           <tbody>

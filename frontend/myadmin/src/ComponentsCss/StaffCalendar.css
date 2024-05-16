@@ -13,7 +13,7 @@
     line-height: 1.125em;
   }
   .react-staffcalendar__navigation {
-    width: 100%; /* Take full width of the calendar */
+    width: 100%; 
     display: flex;
     justify-content: space-between;
   }
@@ -43,7 +43,7 @@
   
   .react-staffcalendar__tile:enabled:hover,
   .react-staffcalendar__tile:enabled:focus {
-    background: #f0f0f0; /* Background color when hovered */
+    background: #f0f0f0; 
     color: green;
   }
   
@@ -108,11 +108,11 @@
     color: white;
   }
   .react-staffcalendar__tile {
-      background: #f8f8fa; /* Background color for the tile */
-      border-radius: 6px; /* Border radius for the tile */
-      padding: 0.5em; /* Padding around the tile */
-      border: 1px solid transparent; /* Add border */
-      text-align: center; /* Center-align text */
+      background: #f8f8fa; 
+      border-radius: 6px; 
+      padding: 0.5em; 
+      border: 1px solid transparent; 
+      text-align: center; 
     }
     
     
@@ -128,18 +128,18 @@
     color: red;
   }
   .react-staffcalendar__month-view {
-    margin-top: 3vw; /* Adjust the margin-top to move the dates down */
+    margin-top: 3vw; 
     text-align: center;
   }
   .react-staffcalendar__tile {
-    border: 0.05vw solid black; /* Set border thickness and color */
-    border-radius: 0vw; /* Optional: Add border radius for rounded corners */
-    margin: 0 !important; /* Remove default margin */
-    padding: 1.5vw; /* Add padding for space around the numbers */
+    border: 0.05vw solid black; 
+    border-radius: 0vw; 
+    margin: 0 !important; 
+    padding: 1.5vw; 
   }
   
   .react-staffcalendar__tile--active {
-    background-color: lightgray; /* Optional: Change background color when date is active */
+    background-color: lightgray; 
   }
   
   

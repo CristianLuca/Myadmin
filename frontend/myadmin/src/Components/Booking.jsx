@@ -40,33 +40,20 @@ export default function Booking() {
 
     // Fetch data initially when the component mounts
     fetchData();
+     // Fetch order items every 5 seconds
+  const intervalId = setInterval(fetchData, 1000);
+
+  // Clear interval on component unmount to prevent memory leaks
+  return () => clearInterval(intervalId);
   }, []);
   useEffect(() => {
-    const formattedDate = selectedDate.toISOString().split('T')[0];
+    const formattedDate = adjustDateForDST(selectedDate).toISOString().split('T')[0];
     const bookings = data.filter(booking => booking.date === formattedDate);
     setBookingsForSelectedDate(bookings);
   }, [selectedDate, data]);
-  const handleCollapseBooking = () => {
-    setExpandedBooking(null);
-  };
 
-  const handleExpandBooking = (index) => {
-    setExpandedBooking(index);
-  };
 
-  const handleMouseEnter = () => {
-    clearTimeout(collapseTimeoutRef.current);
-  };
-
-  const handleMouseLeave = () => {
-    collapseTimeoutRef.current = setTimeout(() => {
-      setExpandedBooking(null);
-    }, 300);
-  };
-
-  const handleDateChange = (date) => {
-    setSelectedDate(date);
-  };
+ 
 
   const handleInput = (event) => {
     setValues((prev) => ({ ...prev, [event.target.name]: event.target.value }));
@@ -153,14 +140,67 @@ export default function Booking() {
     const formattedDate = date.toISOString().split('T')[0];
     return data.filter(booking => booking.date === formattedDate).length;
   };
-  const renderTileContent = ({ date }) => {
-    return (
+  
+// Function to check if DST is in effect for a given date
+function isDST(date) {
+  const january = new Date(date.getFullYear(), 0, 1);
+  const july = new Date(date.getFullYear(), 6, 1);
+
+  // Compare the timezone offsets for January and July
+  return january.getTimezoneOffset() !== july.getTimezoneOffset();
+}
+
+// Function to adjust the date for DST if necessary
+function adjustDateForDST(date) {
+  // Clone the input date to avoid modifying the original date
+  const adjustedDate = new Date(date);
+
+  // Check if DST is in effect
+  if (isDST(adjustedDate)) {
+      // Adjust the date for DST (add one hour)
+      adjustedDate.setHours(adjustedDate.getHours() + 1);
+  }
+
+  return adjustedDate;
+}
+
+// Modify the renderTileContent function
+const renderTileContent = ({ date }) => {
+  // Convert the date parameter to a Date object if necessary
+  const originalDate = date instanceof Date ? date : new Date(date);
+
+  // Adjust the date for DST
+  const adjustedDate = adjustDateForDST(originalDate);
+
+  // Format the adjusted date to a string (e.g., 'YYYY-MM-DD')
+  const formattedDate = adjustedDate.toISOString().split('T')[0];
+
+  // Count bookings for the adjusted date
+  const bookingCount = data.filter((booking) => booking.date === formattedDate).length;
+
+  return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        
-        <p style={{ margin: '0', fontSize: '12px' }}>{countBookingsForDate(date)} booking(s)</p>
+          <p style={{ margin: '0', fontSize: '12px' }}>{bookingCount} booking(s)</p>
       </div>
-    );
-  };
+  );
+};
+const handleCollapseBooking = () => {
+  setExpandedBooking(null);
+};
+
+const handleExpandBooking = (index) => {
+  setExpandedBooking(index);
+};
+
+const handleMouseEnter = () => {
+  clearTimeout(collapseTimeoutRef.current);
+};
+
+const handleMouseLeave = () => {
+  collapseTimeoutRef.current = setTimeout(() => {
+    setExpandedBooking(null);
+  }, 300);
+};
   const bookings = bookingsForSelectedDate.map((item, index) => (
     <React.Fragment key={index}>
       <tr onMouseEnter={() => handleExpandBooking(index)} onMouseLeave={handleCollapseBooking}>
@@ -203,7 +243,7 @@ export default function Booking() {
             <div className="modal-content">
               <span className="close" onClick={handleCloseModal}>&times;</span>
               <form onSubmit={handleSubmit}>
-                {/* Form fields go here */}
+               
                 <input onChange={handleInput} required id='first_name' name='first_name' type="text" placeholder="First Name" value={values.first_name} />
                 <input onChange={handleInput} required id='last_name' name='last_name' type="text" placeholder="Last Name" value={values.last_name} />
                 <input onChange={handleInput} id='email' name='email' type="text" placeholder="E-mail" value={values.email} />

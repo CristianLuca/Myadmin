@@ -1,16 +1,16 @@
 
   
 .table-container {
-    margin: 1vw; /* Center the container */
+    margin: 1vw; 
     position: absolute;
     left: 58vw;
-    height: 50vw; /* Adjust max height as needed */
+    height: 50vw; 
     overflow: auto;
   }
   
 .table {
     
-    width: 38vw; /* Adjust width to account for scrollbar */
+    width: 38vw; 
     border-collapse: collapse;
     
   

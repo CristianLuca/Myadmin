@@ -256,7 +256,7 @@ const Pos = () => {
     }
   };
   const generateBillContent = () => {
-    const restaurantName = "Il Capitano's"; // Replace with your restaurant name
+    const restaurantName = "Il Capitano's"; 
     const currentDate = new Date();
     const dateTimeString = currentDate.toLocaleString();
     let billContent = `${restaurantName}\n`;
@@ -292,7 +292,7 @@ const handlePayment = async (payment_method) => {
     await axios.put(`http://localhost:8800/updateorders`, {
       table_nr: selectedTable,
       status: 'inactive',
-      payment_method: payment_method // This will allow you to track the payment type in your database
+      payment_method: payment_method 
     });
 
     // Refetch order items after updating status
@@ -416,13 +416,13 @@ const handlePayment = async (payment_method) => {
         <div style={{position: 'relative',left:'31.2vw' ,top:'-36.5vw', width:'59vw'}}>
           {/* Render buttons for each category */}
           {Array.from(new Set(menu.map((item) => item.category))).map((category) => (
-            <button className='buttongreen' style = {{justifyContent:'space-between', width:'7vw',backgroundColor:'white', marginRight:'1vw', marginTop:'1vw', padding:'1vw'}} key={category} onClick={() => handleCategoryClick(category)}>{category}</button>
+            <button className='buttongreen' style = {{justifyContent:'space-between', width:'8vw',backgroundColor:'white', marginRight:'1vw', marginTop:'1vw', padding:'1vw'}} key={category} onClick={() => handleCategoryClick(category)}>{category}</button>
           ))}
         </div>
         <div style={{position: 'relative',left:'31vw', top:'-30vw', width:'59vw'}}>
           {/* Render products based on the selected category */}
           {selectedCategory && menu.filter((item) => item.category === selectedCategory).map((item) => (
-            <button  className= 'buttongreen' style = {{justifyContent:'space-between',marginLeft:'0.5vw', marginTop:'0.5vw', width:'7vw', height:'7vh', color:'white'}} key={item.id}> <span onClick={() => handleAddToOrder(item.item_name, item.price, selectedTable)}>{item.item_name}</span> <span style = {{color:'red'}}>£{item.price}</span>
+            <button  className= 'buttongreen' style = {{justifyContent:'space-between',marginLeft:'0.5vw', marginTop:'0.2vw', width:'9.5vw', height:'8vh', color:'white'}} key={item.id}> <span onClick={() => handleAddToOrder(item.item_name, item.price, selectedTable)}>{item.item_name}</span> <span style = {{color:'red'}}>£{item.price}</span>
             {modifyMode && (<div> 
               <button style={{ backgroundColor: 'red', marginRight: '0.3vw', marginLeft:'0vw', borderRadius:'50%', width:'1.5vw', height:'1.5vw', fontSize:'1vw' }} onClick={() => handleDeleteMenu(item.id)}>
             -

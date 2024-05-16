@@ -141,7 +141,7 @@ export default function Stock() {
             <div className="modal-content">
               <span className="close" onClick={handleCloseModal}>&times;</span>
               <form onSubmit={handleSubmit}>
-                {/* Form fields go here */}
+              
                 <input onChange={handleInput} required id='product_name' name='product_name' type="text" placeholder="Product Name" value={values.product_name} />
                 <input onChange={handleInput} required id='expiry_date' name='expiry_date' type="date" placeholder="Expiry Date" value={values.expiry_date} />
                 <input onChange={handleInput} required id='quantity_left' name='quantity_left' type="text" placeholder="Quantity" value={values.quantity_left} />

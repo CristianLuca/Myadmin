@@ -44,6 +44,20 @@ app.get('/staff', (req, res) => {
     res.json(results);
   });
 });
+app.get('/records', (req, res) => {
+  const { employee_id, date } = req.query;
+
+  // Query the database to fetch clock records for the specified employee and date
+  const sql = 'SELECT * FROM clock_records ';
+  db.query(sql, [employee_id, date], (err, result) => {
+    if (err) {
+      console.error('Error fetching clock records:', err);
+      res.status(500).send('Error fetching clock records');
+    } else {
+      res.status(200).json(result);
+    }
+  });
+});
 app.get('/clock-records', (req, res) => {
   const { employee_id, date } = req.query;
 
@@ -75,9 +89,9 @@ app.get('/clock-records-week', (req, res) => {
 
 // Clock In Endpoint
 app.post('/clock-in', (req, res) => {
-  const { fullName, time, employee_id } = req.body;
-  const sql = 'INSERT INTO clock_records (employee_name, clock_in_time, employee_id) VALUES (?, ?, ?)';
-  db.query(sql, [fullName, time, employee_id], (err, result) => {
+  const { fullName, time, employee_id, payrate } = req.body;
+  const sql = 'INSERT INTO clock_records (employee_name, clock_in_time, employee_id, payrate) VALUES (?, ?, ?, ?)';
+  db.query(sql, [fullName, time, employee_id, payrate], (err, result) => {
     if (err) {
       console.error('Error clocking in:', err);
       res.status(500).send('Error clocking in');
@@ -89,9 +103,9 @@ app.post('/clock-in', (req, res) => {
 
 // Clock Out Endpoint
 app.post('/clock-out', (req, res) => {
-  const { fullName, time, employee_id } = req.body;
+  const { fullName, time, employee_id, payrate } = req.body;
   const sql = 'UPDATE clock_records SET clock_out_time = ? WHERE employee_name = ? AND clock_out_time IS NULL';
-  db.query(sql, [time, fullName, employee_id], (err, result) => {
+  db.query(sql, [time, fullName, employee_id, payrate], (err, result) => {
     if (err) {
       console.error('Error clocking out:', err);
       res.status(500).send('Error clocking out');
@@ -171,6 +185,24 @@ app.get('/assigned-staff', async (req, res) => {
   }
 });
 
+app.put('/update-weekly-hours/:id', (req, res) => {
+  const employeeId = req.params.id;
+  const hoursWorkedThisWeek = req.body.hoursWorkedThisWeek;
+
+  const sql = 'UPDATE staff SET hours_worked = ? WHERE id = ?';
+  const values = [hoursWorkedThisWeek, employeeId];
+
+  db.query(sql, values, (err, data) => {
+    if (err) {
+      console.error('Error updating weekly hours:', err);
+      res.status(500).json({ error: 'Internal server error' });
+      return;
+    }
+
+    res.json({ message: 'Weekly hours updated successfully' });
+  });
+});
+
 
 
 app.post('/verify-password', (req, res) => {
@@ -202,7 +234,32 @@ app.post('/verify-password', (req, res) => {
     }
   });
 });
-
+app.put('/updateemployee/:id', (req, res) => {
+  const employeeId = req.params.id;
+  const { first_name, last_name, initials, role, payrate, password } = req.body;
+  const sql = 'UPDATE staff SET first_name = ?, last_name=?, initials=?, role=?, payrate=?, password=? WHERE id=?';
+  const values = [first_name, last_name, initials, role, payrate, password, employeeId];
+  db.query(sql, values, (err, data) => {
+    if (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Internal server error' });
+      return;
+    }
+    res.json({ message: 'Staff info updated successfully' });
+  });
+});
+app.delete('/deleteemployee/:id', (req, res) => {
+  const employeeId = req.params.id;
+  const sql = 'DELETE FROM staff WHERE id = ?';
+  db.query(sql, [employeeId], (err, data) => {
+    if (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Internal server error' });
+      return;
+    }
+    res.json({ message: 'Staff deleted successfully' });
+  });
+});
 app.put('/updatebooking/:id', (req, res) => {
   const bookingId = req.params.id;
   const { first_name, last_name, email, phone, no_guests, date, time, message } = req.body;
@@ -298,7 +355,6 @@ app.get('/tables', (req, res) => {
       return;
     }
 
-    // Parse the position from JSON string to object for each table
     const tablesWithParsedPosition = result.map((table) => {
       return {
         ...table,
@@ -445,8 +501,7 @@ app.post('/add-to-order', (req, res) => {
   const { item_name, price, table_nr, status, date } = req.body;
   const sql = 'INSERT INTO orders (item_name, price, table_nr, status, date) VALUES (?, ?, ?, ?, ?)';
   const values = [item_name, price, table_nr, status, date];
-  
-  // Execute the SQL query
+ 
   db.query(sql, values, (err, result) => {
     if (err) {
       console.error('Error adding order to database:', err);
@@ -462,7 +517,7 @@ app.get('/orders', (req, res) => {
   const sql = 'SELECT id, item_name, price FROM orders WHERE table_nr = ? AND status = ?';
   const values = [table_nr, 'active'];
 
-  // Execute the SQL query
+  
   db.query(sql, values, (err, results) => {
     if (err) {
       console.error('Error fetching order items:', err);
@@ -478,7 +533,7 @@ app.get('/getorders', (req, res) => {
   const sql = 'SELECT * FROM orders ';
   
 
-  // Execute the SQL query
+  
   db.query(sql,(err, results) => {
     if (err) {
       console.error('Error fetching order items:', err);
